@@ -170,12 +170,13 @@ def getHourlyResults(pricingData, weekday):
 
     return hourlyResults
 
-def getSalesAdvice(itemId, itemName):
+def getSalesAdvice(itemId, itemName, historyLength):
     print(f'Generating advice for {itemName} ({itemId})\n')
 
-    url = f'http://localhost:3232/pricing/{itemId}/50'
+    url = f'http://localhost:3232/pricing/{itemId}/{historyLength}'
     res = requests.get(url)
     item = Item(res.json())
+    print(f'Earliest data from: {min(map(lambda x: x.scannedAt, item.pricingData))}')
     pricingData = filterPricingData(item.pricingData)
 
     weeklyResults = dict()
@@ -189,8 +190,29 @@ def getSalesAdvice(itemId, itemName):
             weeklyResults[weekday] = data.minBuyout
             weeklyResultCounts[weekday] = 1
 
-    for i in range(0, 7):
+    weeklyHourlyResults = dict()
+    for weekday in range(0, 7):
+        weeklyHourlyResults[weekday] = getHourlyResults(pricingData, weekday)
 
+    cheapestWeekday = min(weeklyResults, key=weeklyResults.get)
+    cheapestHour = min(weeklyHourlyResults[cheapestWeekday], key=weeklyHourlyResults[cheapestWeekday].get)
+
+    expensiveWeekday = max(weeklyResults, key=weeklyResults.get)
+    expensiveHour = max(weeklyHourlyResults[expensiveWeekday], key=weeklyHourlyResults[expensiveWeekday].get)
+
+    print(f'Best time to buy: {cheapestWeekday + 1}-dienis {cheapestHour}:00. Approximate price: {weeklyHourlyResults[cheapestWeekday][cheapestHour] / 10000} G')
+    print(f'Best time to sell: {expensiveWeekday + 1}-dienis {expensiveHour}:00. Approximate price: {weeklyHourlyResults[expensiveWeekday][expensiveHour] / 10000} G')
+
+
+    # colors = ['-b', '-g', '-r', '-c', '-m', '-y', '-k']
+    # for key, value in weeklyHourlyResults.items():
+    #     print(f'{key+1}-dienis:')
+    #     lists = sorted(value.items())
+    #     x, y = zip(*lists)
+    #     plt.plot(x, y, colors[key], f'{key+1}-dienis')
+
+    # plt.legend(loc='best')
+    # plt.show()
 
 
 def filterPricingData(pricingData):
@@ -218,7 +240,8 @@ def filterPricingData(pricingData):
     return pricingDataResults
 
 
-itemId = 13463
+itemId = 6049
+historyLength = 40
 url = f'http://localhost:3232/pricing/{itemId}/10'
 url2 = f'http://localhost:3232/pricing/{itemId}/20'
 url3 = f'http://localhost:3232/pricing/{itemId}/40'
@@ -246,4 +269,4 @@ url6 = f'http://localhost:3232/pricing/{itemId}/150'
 
 ###################################
 # SCAN ALL DEALS V2
-getSalesAdvice(8838, "testing")
+getSalesAdvice(itemId, "testing", historyLength)
