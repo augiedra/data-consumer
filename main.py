@@ -240,8 +240,9 @@ def filterPricingData(pricingData):
     return pricingDataResults
 
 
-itemId = 6049
-historyLength = 40
+itemId = 7067
+historyLength = 15
+
 url = f'http://localhost:3232/pricing/{itemId}/10'
 url2 = f'http://localhost:3232/pricing/{itemId}/20'
 url3 = f'http://localhost:3232/pricing/{itemId}/40'
